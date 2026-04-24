@@ -1,16 +1,189 @@
-# React + Vite
+# 🇮🇳 Viksit Bharat – Smart Civic Assistance Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Viksit Bharat is a **citizen-centric digital platform** designed to bridge the gap between the public and government services. It enables users to report civic issues, access government schemes, and trigger emergency alerts through a unified, intelligent, and user-friendly system.
 
-Currently, two official plugins are available:
+The platform addresses real-world challenges faced in rural and semi-urban areas, such as lack of transparency in complaint systems, limited awareness of government schemes, and absence of quick digital emergency response mechanisms.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 📝 Civic Issue Reporting & Tracking
 
-## Expanding the ESLint configuration
+* Submit complaints related to sanitation, infrastructure, water issues, etc.
+* Supports both manual input and assisted input (voice-based, location-enabled)
+* Track complaints with real-time status updates:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+  * Submitted
+  * In Progress
+  * Resolved
+* Improves transparency and accountability
+
+---
+
+### 🚨 Emergency SOS System
+
+* One-click SOS button for instant emergency alerts
+* Sends high-priority requests to the backend
+* Attempts to capture user location automatically
+* Works even if location services fail (ensures reliability)
+* Designed for fast, frictionless emergency response
+
+---
+
+### 🏛️ Government Scheme Eligibility Detection
+
+* Intelligent system suggests schemes based on user data
+* Helps citizens discover benefits they may not be aware of
+* Improves accessibility and inclusivity
+
+---
+
+### 📄 Document Verification & Processing
+
+* Upload and scan documents
+* Extracts relevant information automatically
+* Reduces manual effort and speeds up verification
+
+---
+
+### 👥 Role-Based Dashboards
+
+* **Users:** Submit and track complaints
+* **Officials:** Manage and update complaint statuses
+* **Admins:** Monitor system activity and analytics
+
+---
+
+### 🌐 Community Engagement
+
+* Community pages for interaction and participation
+* Leaderboards to recognize active contributors
+* Encourages civic responsibility and collaboration
+
+---
+
+### 📊 Data Insights & Heatmaps
+
+* Visual representation of complaint density
+* Identifies high-issue areas (hotspots)
+* Helps authorities prioritize actions effectively
+
+---
+
+### 🌍 Offline Support (Offline-First Approach)
+
+* Works even with limited or no internet connectivity
+* Stores actions locally using IndexedDB
+* Syncs data automatically when connection is restored
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+* React.js
+* Context API (state management)
+* CSS
+
+### Backend
+
+* Node.js
+* Express.js
+
+### Database
+
+* MongoDB
+
+### APIs & Integrations
+
+* Geolocation API (location detection)
+* IndexedDB (offline storage)
+* Google Maps API (optional for maps)
+* Twilio (optional for notifications)
+
+---
+
+## 📁 Project Structure
+
+```
+Viksit-Bharat/
+│
+├── backend/        # Server-side APIs and logic
+├── src/            # React frontend application
+├── public/         # Static assets
+└── README.md
+```
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1️⃣ Clone the repository
+
+```
+git clone https://github.com/vaishnavi24-hyd/Viksit-Bharat.git
+cd Viksit-Bharat
+```
+
+---
+
+### 2️⃣ Install dependencies
+
+Frontend:
+
+```
+npm install
+```
+
+Backend:
+
+```
+cd backend
+npm install
+```
+
+---
+
+## ▶️ Run the Application
+
+Frontend:
+
+```
+npm run dev
+```
+
+Backend:
+
+```
+cd backend
+node server.js
+```
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env` file inside the `backend` folder:
+
+```
+PORT=5000
+```
+
+> ⚠️ Do not upload `.env` to GitHub
+
+
+
+## 📄 License
+
+This project is intended for educational and demonstration purposes.
+
+---
+
+## 👨‍💻 Author
+
+**Vaishnavi**
+GitHub: https://github.com/vaishnavi24-hyd
+
+---
