@@ -1,0 +1,77 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import UserDashboard from './pages/UserDashboard';
+import Schemes from './pages/Schemes';
+import Register from './pages/Register';
+import Report from './pages/Report';
+import Complaints from './pages/Complaints';
+import VerifyDocuments from './pages/VerifyDocuments';
+import Community from './pages/Community';
+import CommunityLeaders from './pages/CommunityLeaders';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import AdminDashboard from './pages/AdminDashboard';
+import OfficialDashboard from './pages/OfficialDashboard';
+import ChatWidget from './components/ChatWidget';
+import SOSButton from './components/SOSButton';
+
+function App() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <div className="app-container">
+              {!isOnline && (
+                <div style={{ backgroundColor: '#EF4444', color: 'white', textAlign: 'center', padding: '0.5rem', fontWeight: 600, zIndex: 9999, position: 'sticky', top: 0 }}>
+                  ⚠️ Offline Mode – Data will sync later
+                </div>
+              )}
+              <Navbar />
+              <main className="main-content">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/dashboard" element={<ProtectedRoute allowedRole="user"><UserDashboard /></ProtectedRoute>} />
+                  <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/official/dashboard" element={<ProtectedRoute allowedRole="official"><OfficialDashboard /></ProtectedRoute>} />
+                  <Route path="/schemes" element={<Schemes />} />
+                  <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
+                  <Route path="/complaints" element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
+                  <Route path="/verify-documents" element={<ProtectedRoute><VerifyDocuments /></ProtectedRoute>} />
+                  <Route path="/community" element={<Community />} />
+                  <Route path="/community-leaders" element={<CommunityLeaders />} />
+                </Routes>
+              </main>
+              <ChatWidget />
+              <SOSButton />
+            </div>
+          </BrowserRouter>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
+  );
+}
+
+export default App;
