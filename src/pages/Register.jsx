@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Mic, User, Phone, Calendar, MapPin, Briefcase, ChevronDown, MessageCircle, Loader, LocateFixed } from 'lucide-react';
+import { getCurrentLocation } from '../utils/location';
 
 const Register = () => {
   const { login, isAuthenticated, API_URL } = useAuth();
@@ -38,49 +39,20 @@ const Register = () => {
     detectLocation();
   }, [isAuthenticated, navigate]);
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      setLocation("Geolocation is not supported by your browser");
-      return;
-    }
-    
+  const detectLocation = async () => {
     setIsLocating(true);
     setLocation("Detecting your location...");
     
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      
-      try {
-        // Reverse Geocoding using free Nominatim API
-        const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
-        const address = res.data.address;
-        
-        let displayLocation = "";
-        if (address.city || address.town || address.village) {
-            displayLocation = `${address.city || address.town || address.village}`;
-        }
-        if (address.state) {
-            displayLocation += displayLocation ? `, ${address.state}` : address.state;
-        }
-        
-        if (!displayLocation) {
-            displayLocation = res.data.display_name.split(',').slice(0, 2).join(', ');
-        }
-        
-        setLocation(displayLocation);
-      } catch (err) {
-        console.error("Reverse Geocoding failed", err);
-        setLocation(`Lat: ${lat.toFixed(4)}, Lng: ${lon.toFixed(4)}`);
-      } finally {
-        setIsLocating(false);
-      }
-    }, (err) => {
-      console.error("Geolocation error:", err);
+    try {
+      const locData = await getCurrentLocation();
+      setLocation(locData.address);
+    } catch (err) {
+      console.error("Location error:", err);
       setLocation("");
+      setError("Location access denied. Please enable GPS.");
+    } finally {
       setIsLocating(false);
-      setError("Please allow location access in your browser or type it manually.");
-    }, { timeout: 10000 });
+    }
   };
 
   const handleRegister = async (e) => {

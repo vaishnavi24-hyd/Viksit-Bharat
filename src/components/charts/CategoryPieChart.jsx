@@ -6,18 +6,21 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 
 const COLORS = ['#F97316', '#10B981', '#FBBF24', 'var(--text-muted)', '#3B82F6', '#8B5CF6'];
 
-const CategoryPieChart = () => {
-  const { API_URL } = useAuth();
+const CategoryPieChart = ({ complaints = [] }) => {
   const { t } = useLanguage();
-  const [data, setData] = useState([]);
+  
+  const data = React.useMemo(() => {
+    const statuses = ['Submitted', 'In Progress', 'Resolved', 'Closed'];
+    const counts = statuses.map(status => ({
+      name: status,
+      value: complaints.filter(c => c.status === status).length
+    })).filter(d => d.value > 0);
+    return counts;
+  }, [complaints]);
 
-  useEffect(() => {
-    axios.get(`${API_URL}/analytics/categories`).then(res => setData(res.data)).catch(console.error);
-  }, [API_URL]);
+  if (data.length === 0) return <div style={{height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)'}}>No data available</div>;
 
-  if (data.length === 0) return <div style={{height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)'}}>Loading...</div>;
-
-  const total = data.reduce((sum, entry) => sum + entry.value, 0);
+  const total = complaints.length;
 
   const renderLegendText = (value, entry) => {
     const { payload } = entry;

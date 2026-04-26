@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Loader, MapPin, Calendar, Activity, ChevronDown, ChevronUp, Image as ImageIcon, Volume2, Search, Clock } from 'lucide-react';
 import ImageModal from '../components/ImageModal';
-import { getAllRequests } from '../utils/indexedDB';
+import { getAllRequests as getOfflineRequests } from '../utils/offlineDB';
 
 // Timeline Component
 const Timeline = ({ currentStatus, t }) => {
@@ -81,7 +81,7 @@ const Complaints = () => {
         console.error("Online fetch failed", e);
       }
       
-      const offlineReqs = await getAllRequests() || [];
+      const offlineReqs = await getOfflineRequests() || [];
       const offlineComplaints = offlineReqs
         .filter(req => req.type === 'complaint' || req.type === 'sos')
         .map(req => ({
@@ -97,8 +97,7 @@ const Complaints = () => {
           longitude: req.data.longitude,
           createdAt: req.createdAt || new Date().toISOString(),
           source: 'offline',
-          imageUrl: req.data.imageUrl,
-          beforeImage: req.data.beforeImage
+          image: req.data.image
         }));
 
       let allComplaints = [...offlineComplaints, ...onlineData];
@@ -246,6 +245,7 @@ const Complaints = () => {
                 {isExpanded && (
                   <div style={{ padding: '0 1.5rem 1.5rem', borderTop: '1px solid #e5e7eb' }}>
                     
+
                     {/* Status Timeline */}
                     <div style={{ marginTop: '1.5rem', marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)', position: 'relative' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -277,23 +277,24 @@ const Complaints = () => {
                       </div>
                     </div>
 
-                    {/* Legacy or Before Evidence */}
-                    {(complaint.imageUrl || complaint.beforeImage) && (
+                    {/* Removed old Legacy or Before Evidence section to avoid duplication */}
+                    
+                    {complaint.image && (
                       <div style={{ marginBottom: '1.5rem' }}>
                         <h4 style={{ fontSize: '0.9rem', color: 'var(--text-dark)', marginBottom: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}><ImageIcon size={16} /> {t('compEvidence') || 'Evidence'}</h4>
                         <div 
-                          onClick={() => setSelectedImage({ imageUrl: complaint.imageUrl, beforeImage: complaint.beforeImage, afterImage: complaint.afterImage })}
+                          onClick={() => setSelectedImage({ imageUrl: complaint.image, beforeImage: complaint.image, afterImage: complaint.afterImage })}
                           style={{ position: 'relative', cursor: 'pointer', display: 'inline-block', width: '100%', maxWidth: '300px' }}
                         >
                            <img 
-                             src={complaint.beforeImage || complaint.imageUrl} 
-                             alt="Before Evidence" 
-                             style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #d1d5db', transition: 'opacity 0.2s' }} 
+                             src={complaint.image} 
+                             alt="Complaint Evidence" 
+                             style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #d1d5db', transition: 'opacity 0.2s', marginTop: '10px' }} 
                              onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
                              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                            />
                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                             <div style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', padding: '8px 16px', borderRadius: '20px', fontWeight: '500', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                             <div style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', padding: '8px 16px', borderRadius: '20px', fontWeight: '500', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px' }}>
                                <Search size={16} /> View Evidence {complaint.afterImage && '(Before & After)'}
                              </div>
                            </div>

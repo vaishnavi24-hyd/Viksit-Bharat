@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="chakraGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e65100" />
+      <stop offset="100%" stop-color="#1b5e20" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#chakraGradient)" stroke-width="3"/>
+  <circle cx="50" cy="50" r="8" fill="url(#chakraGradient)"/>
+  <line x1="58" y1="50" x2="95" y2="50" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="57.72740661031255" y1="52.070552360820166" x2="93.46666218300808" y2="61.64685702961343" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="56.92820323027551" y1="54" x2="88.97114317029974" y2="72.5" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="55.65685424949238" y1="55.65685424949238" x2="81.81980515339464" y2="81.81980515339464" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="54" y1="56.92820323027551" x2="72.5" y2="88.97114317029974" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="52.070552360820166" y1="57.72740661031255" x2="61.64685702961343" y2="93.46666218300808" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="50" y1="58" x2="50" y2="95" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="47.929447639179834" y1="57.72740661031255" x2="38.353142970386564" y2="93.46666218300808" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="46" y1="56.92820323027551" x2="27.50000000000001" y2="88.97114317029974" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="44.34314575050762" y1="55.65685424949238" x2="18.180194846605364" y2="81.81980515339464" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="43.07179676972449" y1="54" x2="11.02885682970026" y2="72.5" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="42.27259338968746" y1="52.070552360820166" x2="6.533337816991931" y2="61.64685702961344" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="42" y1="50" x2="5" y2="50.00000000000001" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="42.27259338968745" y1="47.929447639179834" x2="6.533337816991924" y2="38.353142970386585" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="43.07179676972449" y1="46" x2="11.02885682970026" y2="27.499999999999996" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="44.34314575050762" y1="44.34314575050762" x2="18.180194846605353" y2="18.180194846605364" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="46" y1="43.07179676972449" x2="27.49999999999998" y2="11.028856829700267" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="47.929447639179834" y1="42.27259338968745" x2="38.35314297038657" y2="6.533337816991924" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="50" y1="42" x2="49.99999999999999" y2="5" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="52.070552360820166" y1="42.27259338968746" x2="61.64685702961345" y2="6.533337816991931" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="54" y1="43.07179676972449" x2="72.5" y2="11.02885682970026" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="55.656854249492376" y1="44.34314575050762" x2="81.81980515339463" y2="18.180194846605353" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="56.92820323027551" y1="46" x2="88.97114317029973" y2="27.49999999999998" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  <line x1="57.72740661031255" y1="47.929447639179834" x2="93.46666218300808" y2="38.35314297038657" stroke="url(#chakraGradient)" stroke-width="1.5" />
+  
+  <circle cx="50" cy="50" r="38" fill="none" stroke="url(#chakraGradient)" stroke-width="0.5" opacity="0.5"/>
+</svg>

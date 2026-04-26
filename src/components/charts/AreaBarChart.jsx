@@ -4,16 +4,18 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const AreaBarChart = () => {
-  const { API_URL } = useAuth();
+const AreaBarChart = ({ complaints = [] }) => {
   const { t } = useLanguage();
-  const [data, setData] = useState([]);
+  
+  const data = React.useMemo(() => {
+    const statuses = ['Submitted', 'In Progress', 'Resolved', 'Closed'];
+    return statuses.map(status => ({
+      name: status,
+      value: complaints.filter(c => c.status === status).length
+    })).filter(d => d.value > 0);
+  }, [complaints]);
 
-  useEffect(() => {
-    axios.get(`${API_URL}/analytics/areas`).then(res => setData(res.data)).catch(console.error);
-  }, [API_URL]);
-
-  if (data.length === 0) return <div style={{height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)'}}>Loading...</div>;
+  if (data.length === 0) return <div style={{height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)'}}>No data available</div>;
 
   return (
     <div style={{ height: 320, width: '100%' }}>

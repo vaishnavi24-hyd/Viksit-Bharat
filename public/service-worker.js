@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vb-cache-v1';
+const CACHE_NAME = 'vb-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -6,6 +6,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -14,38 +15,43 @@ self.addEventListener('install', event => {
   );
 });
 
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        // Cache hit - return response
-        if (response) {
+        // Check if we received a valid response
+        if(!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
 
-        const fetchRequest = event.request.clone();
+        // Clone response and cache it
+        var responseToCache = response.clone();
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            cache.put(event.request, responseToCache);
+          });
 
-        return fetch(fetchRequest).then(
-          function(response) {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clone response
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                // only cache GET requests to avoid TypeError on POST
-                if (event.request.method === 'GET') {
-                  cache.put(event.request, responseToCache);
-                }
-              });
-
-            return response;
-          }
-        );
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try cache
+        return caches.match(event.request);
       })
   );
 });

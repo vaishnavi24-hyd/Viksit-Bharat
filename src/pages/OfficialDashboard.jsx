@@ -5,7 +5,6 @@ import { useLanguage } from '../context/LanguageContext';
 import CategoryPieChart from '../components/charts/CategoryPieChart';
 import AreaBarChart from '../components/charts/AreaBarChart';
 import TrendLineChart from '../components/charts/TrendLineChart';
-import GeoInsightsList from '../components/GeoInsightsList';
 
 const OfficialDashboard = () => {
   const { API_URL } = useAuth();
@@ -98,11 +97,7 @@ const OfficialDashboard = () => {
         </div>
       </div>
 
-      {/* Geo Insights Section */}
-      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 8px 16px rgba(0, 0, 0, 0.05)', marginBottom: '2.5rem', transition: 'all 0.3s ease' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-dark)', marginBottom: '1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>Region Geo Insights</h3>
-        <GeoInsightsList complaints={complaints} />
-      </div>
+
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
         

@@ -7,10 +7,9 @@ import ResolveModal from '../components/ResolveModal';
 import { useLanguage } from '../context/LanguageContext';
 import CategoryPieChart from '../components/charts/CategoryPieChart';
 import AreaBarChart from '../components/charts/AreaBarChart';
-import GeoInsightsList from '../components/GeoInsightsList';
 
 const AdminDashboard = () => {
-  const { API_URL } = useAuth();
+  const { API_URL, token } = useAuth();
   const { t } = useLanguage();
   const [insights, setInsights] = useState(null);
   const [complaints, setComplaints] = useState([]);
@@ -25,21 +24,33 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchData();
+    // OPTION B: Trigger re-fetch for real-time updates (poll every 10s)
+    const intervalId = setInterval(() => {
+      fetchData(false); // pass false to avoid triggering the loading spinner repeatedly
+    }, 10000);
+    return () => clearInterval(intervalId);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (showLoading = true) => {
     try {
-      setLoading(true);
-      const [insightsRes, complaintsRes] = await Promise.all([
-        axios.get(`${API_URL}/admin/insights`),
-        axios.get(`${API_URL}/admin/complaints`)
-      ]);
-      setInsights(insightsRes.data);
-      setComplaints(complaintsRes.data);
+      if (showLoading) setLoading(true);
+      const res = await axios.get(`${API_URL}/complaints`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setComplaints(res.data);
+      // Compute stats from complaints to act as insights
+      setInsights({
+        totalComplaints: res.data.length,
+        pendingComplaints: res.data.filter(c => c.status === 'Submitted').length,
+        inProgressComplaints: res.data.filter(c => c.status === 'In Progress').length,
+        resolvedComplaints: res.data.filter(c => c.status === 'Resolved' || c.status === 'Closed').length
+      });
+      setError(null);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch admin data.');
+      console.error("Admin fetch error:", err);
+      if (showLoading) setError(err.response?.data?.error || 'Failed to fetch admin data.');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -101,8 +112,12 @@ const AdminDashboard = () => {
   });
 
   const filteredAndSortedComplaints = [...filteredComplaints].sort((a, b) => {
-    if (a.type === 'Emergency' && b.type !== 'Emergency') return -1;
-    if (a.type !== 'Emergency' && b.type === 'Emergency') return 1;
+    const aIsActiveEmergency = a.type === 'Emergency' && a.status !== 'Closed' && a.status !== 'Resolved';
+    const bIsActiveEmergency = b.type === 'Emergency' && b.status !== 'Closed' && b.status !== 'Resolved';
+    
+    if (aIsActiveEmergency && !bIsActiveEmergency) return -1;
+    if (!aIsActiveEmergency && bIsActiveEmergency) return 1;
+    
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
@@ -149,10 +164,10 @@ const AdminDashboard = () => {
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444' }}>
               <Clock size={20} />
             </div>
-            <span style={{ color: '#EF4444', fontSize: '0.85rem', fontWeight: '600' }}>-5%</span>
+            <span style={{ color: '#EF4444', fontSize: '0.85rem', fontWeight: '600' }}></span>
           </div>
           <p style={{ fontSize: '2.25rem', fontWeight: '700', color: 'var(--text-dark)', marginTop: '1rem', marginBottom: '0.25rem' }}>{insights.pendingComplaints}</p>
-          <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>Pending</h3>
+          <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>Submitted</h3>
         </div>
 
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.03)', display: 'flex', flexDirection: 'column', position: 'relative', transition: 'all 0.3s ease' }}>
@@ -160,10 +175,9 @@ const AdminDashboard = () => {
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(249, 115, 22, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F97316' }}>
               <PlayCircle size={20} />
             </div>
-            <span style={{ color: '#10B981', fontSize: '0.85rem', fontWeight: '600' }}>+8%</span>
+            <span style={{ color: '#10B981', fontSize: '0.85rem', fontWeight: '600' }}></span>
           </div>
-          {/* Simple calc for in progress */}
-          <p style={{ fontSize: '2.25rem', fontWeight: '700', color: 'var(--text-dark)', marginTop: '1rem', marginBottom: '0.25rem' }}>{Math.max(0, insights.totalComplaints - insights.pendingComplaints - insights.resolvedComplaints)}</p>
+          <p style={{ fontSize: '2.25rem', fontWeight: '700', color: 'var(--text-dark)', marginTop: '1rem', marginBottom: '0.25rem' }}>{insights.inProgressComplaints}</p>
           <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>In Progress</h3>
         </div>
 
@@ -172,7 +186,7 @@ const AdminDashboard = () => {
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(22, 163, 74, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A' }}>
               <CheckCircle size={20} />
             </div>
-            <span style={{ color: '#10B981', fontSize: '0.85rem', fontWeight: '600' }}>+18%</span>
+            <span style={{ color: '#10B981', fontSize: '0.85rem', fontWeight: '600' }}></span>
           </div>
           <p style={{ fontSize: '2.25rem', fontWeight: '700', color: 'var(--text-dark)', marginTop: '1rem', marginBottom: '0.25rem' }}>{insights.resolvedComplaints}</p>
           <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>Resolved</h3>
@@ -180,31 +194,52 @@ const AdminDashboard = () => {
 
       </div>
 
-      {/* Geo Insights Section */}
-      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.03)', marginBottom: '2.5rem', transition: 'all 0.3s ease' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', color: 'var(--text-dark)' }}>Geo Insights</h3>
-        <GeoInsightsList complaints={complaints} />
-      </div>
+
 
       {/* Chart Section */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
         
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.03)', transition: 'all 0.3s ease' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Complaints by Category</h3>
-          <CategoryPieChart />
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Complaints by Status (Pie)</h3>
+          <CategoryPieChart complaints={complaints} />
         </div>
 
         <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.03)', transition: 'all 0.3s ease' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Complaints by Area</h3>
-          <AreaBarChart />
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-dark)', marginBottom: '1.5rem' }}>Complaints by Status (Bar)</h3>
+          <AreaBarChart complaints={complaints} />
         </div>
 
       </div>
 
       {/* Table Section */}
       <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.03)', overflow: 'hidden', transition: 'all 0.3s ease' }}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <h3 style={{ fontSize: '1.2rem', fontWeight: '600', color: 'var(--text-dark)' }}>Recent Complaints</h3>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <select 
+              value={filterStatus} 
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #E5E7EB', backgroundColor: 'var(--bg-color)', color: 'var(--text-dark)', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="All">All Statuses</option>
+              <option value="Submitted">Submitted</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Closed">Closed</option>
+            </select>
+            <select 
+              value={filterCategory} 
+              onChange={(e) => setFilterCategory(e.target.value)}
+              style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #E5E7EB', backgroundColor: 'var(--bg-color)', color: 'var(--text-dark)', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="All">All Categories</option>
+              <option value="Roads & Potholes">Roads & Potholes</option>
+              <option value="Water & Sanitation">Water & Sanitation</option>
+              <option value="Electricity & Power">Electricity & Power</option>
+              <option value="Garbage & Waste">Garbage & Waste</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
         <div style={{ overflowX: 'auto', padding: '0 1.5rem 1.5rem' }}>
           <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginTop: '1rem' }}>

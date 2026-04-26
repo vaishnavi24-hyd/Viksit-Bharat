@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors';
+import cors from "cors";
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { auth } from './middleware/auth.js';
@@ -21,8 +21,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:5174"],
+  credentials: true
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Mock DB for OTP storage
 const otpStorage = new Map();
@@ -123,22 +127,18 @@ app.get('/api/leaderboard', auth, async (req, res) => {
 // 5. Create Complaint
 app.post('/api/complaints', auth, async (req, res) => {
   try {
-    const { title, issueType, description, imageUrl, beforeImage, latitude, longitude, address, state, district, city, area } = req.body;
+    const { title, issueType, description, image, latitude, longitude, address, state, district, city, area } = req.body;
     
     if (!title || !issueType || !description || !address) {
       return res.status(400).json({ error: 'Title, issue type, description, and address are required' });
     }
-    
-    // We seamlessly fallback imageUrl to beforeImage to prevent breaking old apps
-    const resolvedBeforeImage = beforeImage || imageUrl;
     
     const newComplaint = new Complaint({
       userId: req.user.id,
       title,
       issueType,
       description,
-      imageUrl: resolvedBeforeImage, // maintain legacy field
-      beforeImage: resolvedBeforeImage,
+      image: image,
       latitude,
       longitude,
       address,
@@ -165,7 +165,17 @@ app.post('/api/complaints', auth, async (req, res) => {
   }
 });
 
-// 6. Get User Complaints
+// 6. Get All Complaints
+app.get('/api/complaints', auth, async (req, res) => {
+  try {
+    const complaints = await Complaint.find().sort({ createdAt: -1 });
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 6b. Get User Complaints
 app.get('/api/complaints/user', auth, async (req, res) => {
   try {
     const complaints = await Complaint.find({ userId: req.user.id }).sort({ createdAt: -1 });

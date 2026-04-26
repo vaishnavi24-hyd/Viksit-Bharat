@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { Mic, Loader, MapPin, Camera, Image as ImageIcon, Send, LocateFixed, MessageCircle } from 'lucide-react';
+import { Mic, Loader, MapPin, Camera, Image as ImageIcon, Send, LocateFixed, MessageCircle, Upload } from 'lucide-react';
 import axios from 'axios';
-import { addRequest } from '../utils/indexedDB';
+import CameraCapture from '../components/CameraCapture';
+import { saveRequest as addOfflineRequest } from '../utils/offlineDB';
+import { getCurrentLocation } from '../utils/location';
 
 const Report = () => {
   const { isAuthenticated, API_URL, token } = useAuth();
@@ -20,11 +22,15 @@ const Report = () => {
   const [issueType, setIssueType] = useState('');
   const [description, setDescription] = useState('');
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [image, setImage] = useState('');
+  const [showCamera, setShowCamera] = useState(false);
   
   // Location state
   const [address, setAddress] = useState('');
   const [addressObj, setAddressObj] = useState({ state: '', district: '', city: '', area: '' });
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   // Voice state
   const [isListening, setIsListening] = useState(false);
@@ -34,7 +40,26 @@ const Report = () => {
     if (!isAuthenticated) {
       navigate('/login');
     }
+    detectLocation();
   }, [isAuthenticated, navigate]);
+
+  const detectLocation = async () => {
+    setIsLocating(true);
+    setAddress("Detecting your location...");
+    
+    try {
+      const locData = await getCurrentLocation();
+      setAddress(locData.address);
+      setLatitude(locData.latitude);
+      setLongitude(locData.longitude);
+    } catch (err) {
+      console.error("Location error:", err);
+      setAddress("");
+      setError("Location access denied. Please enable GPS.");
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   const speakAndMapField = (promptText, onTranscriptResult, onComplete) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -148,7 +173,7 @@ const Report = () => {
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result);
+        setImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -175,12 +200,13 @@ const Report = () => {
         district: addressObj.district,
         city: addressObj.city,
         area: addressObj.area,
-        imageUrl: imagePreview, // Send Base64 image payload directly to API
-        beforeImage: imagePreview // Explicitly map as before proof
+        latitude,
+        longitude,
+        image: image
       };
 
       if (!navigator.onLine) {
-        await addRequest({
+        await addOfflineRequest({
           id: "offline_" + Date.now(),
           type: "complaint",
           data: payload,
@@ -204,7 +230,7 @@ const Report = () => {
     } catch (err) {
       if (!err.response && !navigator.onLine) {
          // Network error intercept
-         await addRequest({
+         await addOfflineRequest({
             id: "offline_" + Date.now(),
             type: "complaint",
             data: payload,
@@ -258,6 +284,9 @@ const Report = () => {
         <div style={{ marginBottom: '1.5rem' }}>
            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--text-dark)' }}>
              <span>{t('reportLocLabel')} <span style={{ color: '#EF4444' }}>*</span></span>
+             <button type="button" onClick={detectLocation} style={{ background: 'none', border: 'none', color: '#F97316', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+               {isLocating ? <Loader size={14} className="animate-spin" /> : <LocateFixed size={14} />} {t('autoDetect') || 'Auto Detect'}
+             </button>
            </label>
            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--card-bg)', overflow: 'hidden' }}>
              <div style={{ padding: '0.85rem', color: 'var(--text-muted)', borderRight: '1px solid var(--border-color)', backgroundColor: 'transparent' }}><MapPin size={20} /></div>
@@ -334,24 +363,46 @@ const Report = () => {
           <div style={{ marginBottom: '2.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--text-dark)' }}>{t('reportAttachImg')}</label>
             
-            {!imagePreview ? (
-              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', border: '2px dashed #d1d5db', borderRadius: '8px', cursor: 'pointer', backgroundColor: '#f9fafb', transition: 'all 0.2s' }}>
-                <ImageIcon size={32} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
-                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{t('reportClickUpload')}</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{t('reportCameraTip')}</span>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  capture="environment" 
-                  onChange={handleImageChange} 
-                  style={{ display: 'none' }} 
-                  disabled={loading || successMsg}
-                />
-              </label>
+            {showCamera ? (
+              <CameraCapture 
+                onCapture={(base64Img) => {
+                  setImage(base64Img);
+                  setImageFile(null); // Clear file since we use base64
+                  setShowCamera(false);
+                }} 
+                onClose={() => setShowCamera(false)} 
+              />
+            ) : !image ? (
+              <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', border: '2px dashed #d1d5db', borderRadius: '8px', cursor: 'pointer', backgroundColor: '#f9fafb', transition: 'all 0.2s' }}>
+                    <Upload size={28} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Upload Image</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageChange} 
+                      style={{ display: 'none' }} 
+                      disabled={loading || successMsg}
+                    />
+                  </label>
+                  
+                  <button 
+                    type="button"
+                    onClick={() => setShowCamera(true)}
+                    disabled={loading || successMsg}
+                    style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', border: '2px dashed #d1d5db', borderRadius: '8px', cursor: 'pointer', backgroundColor: '#f9fafb', transition: 'all 0.2s' }}
+                  >
+                    <Camera size={28} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Open Camera</span>
+                  </button>
+                </div>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textAlign: 'center' }}>{t('reportCameraTip')}</span>
+              </div>
             ) : (
               <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-                <img src={imagePreview} alt="Preview" style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'cover' }} />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+                <img src={image} alt="Preview" style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'cover' }} />
+                <button type="button" onClick={() => { setImageFile(null); setImage(''); }} style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
                   {t('reportRetake')}
                 </button>
               </div>

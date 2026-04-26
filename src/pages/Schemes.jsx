@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Loader, CheckCircle2, ShieldCheck, X, FileText, ArrowRight, Library, Search, Mic, Volume2 } from 'lucide-react';
+import { schemesData } from '../data/schemesData';
 
 const Schemes = () => {
   const { isAuthenticated, user, API_URL } = useAuth();
@@ -29,6 +30,7 @@ const Schemes = () => {
   const [stateName, setStateName] = useState('');
   const [area, setArea] = useState('');
   const [familyStatus, setFamilyStatus] = useState('');
+  const [educationLevel, setEducationLevel] = useState('');
   
   // Voice State
   const [isListening, setIsListening] = useState(false);
@@ -44,9 +46,34 @@ const Schemes = () => {
     if (user?.occupation) setOccupation(user.occupation);
   }, [isAuthenticated, navigate, user]);
 
+  const getEligibleSchemes = (profile, allSchemes) => {
+    return allSchemes.filter(scheme => {
+      const e = scheme.eligibility;
+      const userAge = parseInt(profile.age) || 0;
+      const userIncome = parseInt(profile.income) || 0;
+
+      // Check age
+      if (userAge < e.minAge || userAge > e.maxAge) return false;
+
+      // Check income
+      if (userIncome < e.minIncome || userIncome > e.maxIncome) return false;
+
+      // Check occupation
+      if (!e.occupation.includes("All") && !e.occupation.includes("Any") && !e.occupation.includes(profile.occupation)) return false;
+
+      // Check gender
+      if (!e.gender.includes("All") && !e.gender.includes("Any") && !e.gender.includes(profile.gender)) return false;
+
+      // Check education
+      if (!e.educationLevel.includes("All") && !e.educationLevel.includes("Any") && !e.educationLevel.includes(profile.educationLevel)) return false;
+
+      return true;
+    });
+  };
+
   const handleEligibilitySubmit = async (e) => {
     e.preventDefault();
-    if (!income || !gender || !casteCategory || !stateName || !area || !familyStatus || !occupation) {
+    if (!income || !gender || !educationLevel || !casteCategory || !stateName || !area || !familyStatus || !occupation) {
       setError(t('schemesErrFields'));
       return;
     }
@@ -54,9 +81,9 @@ const Schemes = () => {
     setError('');
     setLoading(true);
     try {
-      const payload = { age, occupation, income, gender, casteCategory, state: stateName, area, familyStatus };
-      const res = await axios.post(`${API_URL}/check-schemes`, payload);
-      setSchemes(res.data);
+      const profile = { age, occupation, income, gender, educationLevel, casteCategory, state: stateName, area, familyStatus };
+      const filtered = getEligibleSchemes(profile, schemesData);
+      setSchemes(filtered);
       setHasEvaluated(true);
     } catch (err) {
       setError(t('schemesErrConnect'));
@@ -393,6 +420,18 @@ const Schemes = () => {
                 </div>
               </div>
 
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--text-dark)' }}>Education Level</label>
+                <select value={educationLevel} onChange={(e)=>setEducationLevel(e.target.value)} style={{ width: '100%', padding: '0.85rem', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '1rem', backgroundColor: 'var(--card-bg)', color: 'var(--text-dark)' }} required>
+                   <option value="" disabled>Select Education Level</option>
+                   <option value="High School">High School</option>
+                   <option value="Undergraduate">Undergraduate</option>
+                   <option value="Postgraduate">Postgraduate</option>
+                   <option value="Uneducated">Uneducated</option>
+                   <option value="Any">Any</option>
+                </select>
+              </div>
+
               <button type="submit" disabled={loading} className="btn btn-primary w-full" style={{ display: 'flex', gap: '8px', justifyContent: 'center', backgroundColor: '#F97316', padding: '1.1rem', fontSize: '1.1rem', borderRadius: '8px', border: 'none', marginTop: '1rem' }}>
                 {loading ? <Loader size={22} className="animate-spin" /> : <Search size={22} />}
                 {loading ? t('schemesEval') : t('schemesCheckBtn')}
@@ -400,27 +439,51 @@ const Schemes = () => {
            </form>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-          {schemes.map((scheme) => {
-             const badgeStyle = getBadgeColor(scheme.type);
-             return (
-               <div key={scheme._id} className="card" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', borderRadius: '16px', backgroundColor: 'var(--card-bg)', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', transition: 'transform 0.2s', cursor: 'pointer' }} onClick={() => setActiveScheme(scheme)}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                   <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F97316', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{scheme.category}</span>
-                   <span style={{ backgroundColor: badgeStyle.bg, color: badgeStyle.text, padding: '0.25rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>{scheme.type}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+          {schemes.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'var(--card-bg)', borderRadius: '16px' }}>
+              <h3 style={{ color: 'var(--text-dark)', marginBottom: '0.5rem' }}>No schemes available for your profile</h3>
+              <p style={{ color: 'var(--text-muted)' }}>Try adjusting your details to find eligible schemes.</p>
+            </div>
+          ) : (
+            ['Welfare', 'Education', 'Health', 'Investment', 'Private'].map(category => {
+               const categorySchemes = schemes.filter(s => s.category === category);
+               if (categorySchemes.length === 0) return null;
+               
+               return (
+                 <div key={category}>
+                   <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '1rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                     {category} Schemes
+                   </h3>
+                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                     {categorySchemes.map((scheme) => {
+                        const badgeStyle = getBadgeColor(scheme.type);
+                        return (
+                          <div key={scheme._id} className="card" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', borderRadius: '16px', backgroundColor: 'var(--card-bg)', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', transition: 'transform 0.2s', cursor: 'pointer' }} onClick={() => setActiveScheme(scheme)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F97316', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{scheme.category}</span>
+                              <span style={{ backgroundColor: badgeStyle.bg, color: badgeStyle.text, padding: '0.25rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>{scheme.type}</span>
+                            </div>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '0.75rem', lineHeight: '1.4' }}>{scheme.name}</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', flex: 1, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                              {scheme.description}
+                            </p>
+                            <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', color: '#15803d', fontSize: '0.85rem', fontWeight: 600 }}>
+                              <CheckCircle2 size={16} /> You are eligible
+                            </div>
+                            <div style={{ marginTop: '1.5rem' }}>
+                              <button className="btn w-full" style={{ border: '1px solid #e5e7eb', backgroundColor: '#f9fafb', color: 'var(--text-dark)', padding: '0.75rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                {t('schemesViewDetails')}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                     })}
+                   </div>
                  </div>
-                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '0.75rem', lineHeight: '1.4' }}>{scheme.name}</h3>
-                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', flex: 1, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                   {scheme.description}
-                 </p>
-                 <div style={{ marginTop: '1.5rem' }}>
-                   <button className="btn w-full" style={{ border: '1px solid #e5e7eb', backgroundColor: '#f9fafb', color: 'var(--text-dark)', padding: '0.75rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                     {t('schemesViewDetails')}
-                   </button>
-                 </div>
-               </div>
-             );
-          })}
+               );
+            })
+          )}
         </div>
       )}
 

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { X, Image as ImageIcon, CheckCircle, Loader } from 'lucide-react';
+import { X, Image as ImageIcon, CheckCircle, Loader, Camera, Upload } from 'lucide-react';
+import CameraCapture from './CameraCapture';
 
 const ResolveModal = ({ complaint, onClose, onSave }) => {
   const [status, setStatus] = useState(complaint?.status || 'In Progress');
   const [remark, setRemark] = useState('');
   const [afterImage, setAfterImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [showCamera, setShowCamera] = useState(false);
   const [saving, setSaving] = useState(false);
 
   if (!complaint) return null;
@@ -65,17 +67,36 @@ const ResolveModal = ({ complaint, onClose, onSave }) => {
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-dark)' }}>
               After Image (Proof of Resolution) <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 400 }}>(Optional)</span>
             </label>
-            {!imagePreview ? (
-              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', border: '2px dashed var(--border-color)', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'var(--bg-color)', transition: 'all 0.2s' }}>
-                <ImageIcon size={28} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>Click to upload proof</span>
-                <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-              </label>
+            {showCamera ? (
+              <CameraCapture 
+                onCapture={(base64Img) => {
+                  setImagePreview(base64Img);
+                  setAfterImage(null); // Clear file since using base64
+                  setShowCamera(false);
+                }} 
+                onClose={() => setShowCamera(false)} 
+              />
+            ) : !imagePreview ? (
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', border: '2px dashed var(--border-color)', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'var(--bg-color)', transition: 'all 0.2s' }}>
+                  <Upload size={28} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>Upload Image</span>
+                  <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                </label>
+                <button 
+                  type="button"
+                  onClick={() => setShowCamera(true)}
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', border: '2px dashed var(--border-color)', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'var(--bg-color)', transition: 'all 0.2s' }}
+                >
+                  <Camera size={28} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>Open Camera</span>
+                </button>
+              </div>
             ) : (
               <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                 <img src={imagePreview} alt="Resolution Details" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', display: 'block' }} />
                 <button type="button" onClick={() => { setAfterImage(null); setImagePreview(''); }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                  Retake
+                  Remove
                 </button>
               </div>
             )}

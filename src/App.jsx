@@ -3,36 +3,44 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
+
 import Navbar from './components/Navbar';
+import ChatWidget from './components/ChatWidget';
+import SOSButton from './components/SOSButton';
+
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import Schemes from './pages/Schemes';
-import Register from './pages/Register';
 import Report from './pages/Report';
 import Complaints from './pages/Complaints';
 import VerifyDocuments from './pages/VerifyDocuments';
 import Community from './pages/Community';
 import CommunityLeaders from './pages/CommunityLeaders';
-import { ProtectedRoute } from './components/ProtectedRoute';
 import AdminDashboard from './pages/AdminDashboard';
 import OfficialDashboard from './pages/OfficialDashboard';
-import ChatWidget from './components/ChatWidget';
-import SOSButton from './components/SOSButton';
+import { ProtectedRoute } from './components/ProtectedRoute';
+
+import { syncRequests } from './utils/syncService';
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const goOnline = () => {
+      setIsOnline(true);
+      syncRequests();
+    };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    const goOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
     };
   }, []);
 
@@ -42,12 +50,21 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <div className="app-container">
+
               {!isOnline && (
-                <div style={{ backgroundColor: '#EF4444', color: 'white', textAlign: 'center', padding: '0.5rem', fontWeight: 600, zIndex: 9999, position: 'sticky', top: 0 }}>
+                <div style={{
+                  background: '#EF4444',
+                  color: 'white',
+                  textAlign: 'center',
+                  padding: '8px',
+                  fontWeight: 'bold'
+                }}>
                   ⚠️ Offline Mode – Data will sync later
                 </div>
               )}
+
               <Navbar />
+
               <main className="main-content">
                 <Routes>
                   <Route path="/" element={<Home />} />
@@ -64,8 +81,10 @@ function App() {
                   <Route path="/community-leaders" element={<CommunityLeaders />} />
                 </Routes>
               </main>
+
               <ChatWidget />
               <SOSButton />
+
             </div>
           </BrowserRouter>
         </AuthProvider>

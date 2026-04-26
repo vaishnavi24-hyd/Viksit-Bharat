@@ -1,11 +1,35 @@
 /* Home Page Specific Styling */
 
 .home-wrapper {
-  background-color: var(--bg-color);
+  background-color: transparent;
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   transition: var(--transition);
   color: var(--text-dark);
   padding-bottom: 2rem;
+}
+
+.chakra-bg {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 55vw;
+  height: 55vw;
+  transform: translate(-50%, -50%);
+  opacity: 0.18;
+  z-index: 0;
+  pointer-events: none;
+  animation: rotateChakra 35s linear infinite;
+}
+
+@keyframes rotateChakra {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 /* Typography Overrides for modern look */

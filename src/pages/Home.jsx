@@ -36,6 +36,43 @@ const Home = () => {
 
   return (
     <div className="home-wrapper">
+      <div className="chakra-bg">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+          <defs>
+            <linearGradient id="chakraGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#e65100" />
+              <stop offset="100%" stopColor="#1b5e20" />
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="45" fill="none" stroke="url(#chakraGradient)" strokeWidth="3"/>
+          <circle cx="50" cy="50" r="8" fill="url(#chakraGradient)"/>
+          <line x1="58" y1="50" x2="95" y2="50" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="57.727" y1="52.071" x2="93.467" y2="61.647" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="56.928" y1="54" x2="88.971" y2="72.5" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="55.657" y1="55.657" x2="81.820" y2="81.820" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="54" y1="56.928" x2="72.5" y2="88.971" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="52.071" y1="57.727" x2="61.647" y2="93.467" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="50" y1="58" x2="50" y2="95" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="47.929" y1="57.727" x2="38.353" y2="93.467" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="46" y1="56.928" x2="27.500" y2="88.971" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="44.343" y1="55.657" x2="18.180" y2="81.820" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="43.072" y1="54" x2="11.029" y2="72.5" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="42.273" y1="52.071" x2="6.533" y2="61.647" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="42" y1="50" x2="5" y2="50" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="42.273" y1="47.929" x2="6.533" y2="38.353" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="43.072" y1="46" x2="11.029" y2="27.5" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="44.343" y1="44.343" x2="18.180" y2="18.180" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="46" y1="43.072" x2="27.5" y2="11.029" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="47.929" y1="42.273" x2="38.353" y2="6.533" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="50" y1="42" x2="50" y2="5" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="52.071" y1="42.273" x2="61.647" y2="6.533" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="54" y1="43.072" x2="72.5" y2="11.029" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="55.657" y1="44.343" x2="81.820" y2="18.180" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="56.928" y1="46" x2="88.971" y2="27.500" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <line x1="57.727" y1="47.929" x2="93.467" y2="38.353" stroke="url(#chakraGradient)" strokeWidth="1.5" />
+          <circle cx="50" cy="50" r="38" fill="none" stroke="url(#chakraGradient)" strokeWidth="0.5" opacity="0.5"/>
+        </svg>
+      </div>
       {/* 1. HERO SECTION */}
       <section className="hero-new">
         <h1 className="hero-title">
